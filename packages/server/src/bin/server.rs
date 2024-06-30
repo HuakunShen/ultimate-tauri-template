@@ -1,8 +1,11 @@
 use axum::routing::get;
+use axum_server::tls_rustls::RustlsConfig;
 use serde::Serialize;
 use server::grpc::greeter::hello_world::greeter_server::GreeterServer;
 use server::grpc::greeter::MyGreeter;
+use server::utils::get_tls_config;
 use std::net::SocketAddr;
+use std::path::PathBuf;
 use tokio::net::UdpSocket;
 use tonic::transport::Server as TonicServer;
 
@@ -16,6 +19,12 @@ async fn web_root() -> &'static str {
 struct ServerInfo {
     server_name: String,
     server_version: String,
+}
+
+#[derive(Clone, Copy)]
+struct Ports {
+    http: u16,
+    https: u16,
 }
 
 async fn get_server_info() -> axum::Json<ServerInfo> {
@@ -79,6 +88,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .into_router()
         .route("/", get(web_root))
         .route("/info", get(get_server_info));
+    // let tls_config = get_tls_config().await?;
+    // let ports = Ports {
+    //     http: 7878,
+    //     https: 3000,
+    // };
+    // let addr = SocketAddr::from(([127, 0, 0, 1], ports.https));
+    // axum_server::bind_rustls(addr, tls_config)
+    //     .serve(grpc_router.into_make_service())
+    //     .await?;
     axum::Server::bind(&server_addr)
         .serve(grpc_router.into_make_service())
         .await?;
