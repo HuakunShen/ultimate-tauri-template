@@ -667,11 +667,18 @@ dependencies = [
 name = "desktop"
 version = "0.0.0"
 dependencies = [
+ "axum",
+ "axum-extra",
+ "hyper 0.14.29",
+ "reqwest",
  "serde",
  "serde_json",
+ "server",
  "tauri",
  "tauri-build",
  "tauri-plugin-shell",
+ "tokio",
+ "tonic",
 ]
 
 [[package]]
@@ -3411,6 +3418,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "signal-hook-registry"
+version = "1.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9e9e0b4211b72e7b8b6e85c807d36c212bdb33ea8587f7569562a84df5465b1"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "simd-adler32"
 version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4044,6 +4060,7 @@ dependencies = [
  "mio",
  "num_cpus",
  "pin-project-lite",
+ "signal-hook-registry",
  "socket2",
  "tokio-macros",
  "windows-sys 0.48.0",

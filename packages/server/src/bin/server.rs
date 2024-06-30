@@ -91,7 +91,7 @@ mod tests {
     use std::net::SocketAddr;
     use tokio::net::UdpSocket;
 
-    const SERVER_PORT: u16 = 50051;
+    const SERVER_PORT: u16 = 1566;
 
     #[tokio::test]
     async fn grpc_client_works() -> Result<(), Box<dyn std::error::Error>> {
