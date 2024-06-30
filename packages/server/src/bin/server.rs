@@ -7,6 +7,8 @@ use std::net::SocketAddr;
 use tokio::net::{TcpListener, UdpSocket};
 use tonic::transport::Server as TonicServer;
 
+const SERVER_PORT: u16 = 1566;
+
 async fn web_root() -> &'static str {
     "Hello World!"
 }
@@ -65,7 +67,8 @@ async fn udp_listener(udp_socket: UdpSocket) -> std::io::Result<()> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let server_addr: SocketAddr = "[::]:50051".parse()?;
+    let server_addr: SocketAddr = "[::]:1566".parse()?;
+    // let server_addr = SocketAddr::from(([0, 0, 0, 0], SERVER_PORT));
     let udp_socket = UdpSocket::bind(&server_addr).await?;
     let tcp_listener = TcpListener::bind(&server_addr).await?;
     tokio::task::spawn(udp_listener(udp_socket));

@@ -1,4 +1,5 @@
 use serde::Serialize;
+use tauri::AppHandle;
 
 #[derive(Serialize)]
 pub struct ServerInfo {
@@ -9,7 +10,7 @@ pub struct ServerInfo {
 
 
 #[derive(Clone)]
-struct ServerState {
+pub struct ServerState {
     // that holds some api specific state
-    // app_handle: AppHandle,
+    pub app_handle: AppHandle,
 }

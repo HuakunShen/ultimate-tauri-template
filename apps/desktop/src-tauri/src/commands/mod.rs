@@ -8,13 +8,13 @@ pub mod server {
 
     #[tauri::command]
     pub async fn stop_server(server: tauri::State<'_, Server>) -> Result<(), String> {
-        server.stop().await;
+        server.stop().await.map_err(|err| err.to_string())?;
         Ok(())
     }
 
     #[tauri::command]
     pub async fn restart_server(server: tauri::State<'_, Server>) -> Result<(), String> {
-        server.stop().await;
+        server.stop().await.map_err(|err| err.to_string())?;
         server.start().await.map_err(|err| err.to_string())
     }
 
@@ -35,7 +35,7 @@ pub mod server {
     pub async fn stop_service_discovery_server(
         server: tauri::State<'_, DiscoveryServer>,
     ) -> Result<(), String> {
-        server.stop().await;
+        server.stop().await.map_err(|err| err.to_string())?;
         Ok(())
     }
 
@@ -43,7 +43,7 @@ pub mod server {
     pub async fn restart_service_discovery_server(
         server: tauri::State<'_, DiscoveryServer>,
     ) -> Result<(), String> {
-        server.stop().await;
+        server.stop().await.map_err(|err| err.to_string())?;
         server.start().await.map_err(|err| err.to_string())
     }
 
