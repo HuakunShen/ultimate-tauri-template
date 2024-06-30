@@ -1,5 +1,5 @@
 use std::{net::SocketAddr, sync::Arc};
-use tauri::{AppHandle, Runtime};
+use tauri::AppHandle;
 use tokio::{
     net::UdpSocket,
     sync::{broadcast, Mutex},
@@ -26,13 +26,7 @@ pub async fn udp_listener(
                         );
                         let local_addr = udp_socket.local_addr()?;
 
-                        let response = format!(
-                            "Echo: {}",
-                            format!(
-                                "Hello, from UDP Server on {}:{}",
-                                local_addr.ip(),
-                                local_addr.port()
-                            )
+                        let response = format!("Hello, from UDP Server on {}:{}",local_addr.ip(),local_addr.port()
                         );
                         match udp_socket.send_to(response.as_bytes(), &src).await {
                             Ok(sent_len) => {
@@ -56,7 +50,7 @@ pub async fn udp_listener(
 }
 
 pub async fn start_service_discovery_server(
-    app_handle: AppHandle,
+    _app_handle: AppHandle,
     server_addr: SocketAddr,
     stop_rx: broadcast::Receiver<()>,
 ) -> Result<(), Box<dyn std::error::Error>> {

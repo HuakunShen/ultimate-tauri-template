@@ -1,10 +1,9 @@
 use axum::routing::get;
-use hyper::server::conn::AddrIncoming;
 use serde::Serialize;
 use server::grpc::greeter::hello_world::greeter_server::GreeterServer;
 use server::grpc::greeter::MyGreeter;
 use std::net::SocketAddr;
-use tokio::net::{TcpListener, UdpSocket};
+use tokio::net::UdpSocket;
 use tonic::transport::Server as TonicServer;
 
 const SERVER_PORT: u16 = 1566;
@@ -40,12 +39,9 @@ async fn udp_listener(udp_socket: UdpSocket) -> std::io::Result<()> {
                 let local_addr = udp_socket.local_addr()?;
 
                 let response = format!(
-                    "Echo: {}",
-                    format!(
-                        "Hello, from UDP Server on {}:{}",
-                        local_addr.ip(),
-                        local_addr.port()
-                    )
+                    "Echo: Hello, from UDP Server on {}:{}",
+                    local_addr.ip(),
+                    local_addr.port()
                 );
                 match udp_socket.send_to(response.as_bytes(), &src).await {
                     Ok(sent_len) => {
