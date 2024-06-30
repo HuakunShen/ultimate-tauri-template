@@ -1,8 +1,7 @@
 use axum::{routing::get, Router};
 use axum_server::tls_rustls::RustlsConfig;
+use server::utils::{redirect_http_to_https, Ports};
 use std::{net::SocketAddr, path::PathBuf};
-
-const SERVER_PORT: u16 = 3000;
 
 #[tokio::main]
 async fn main() {
@@ -17,34 +16,46 @@ async fn main() {
     )
     .await
     .unwrap();
+    let ports = Ports {
+        http: 7878,
+        https: 3000,
+    };
+    tokio::spawn(redirect_http_to_https(ports));
+
     // Create your Axum router and routes here
     let app = Router::new().route("/", get(|| async { "Hello, Axum!" }));
     // Bind the server to a socket address
-    let addr = SocketAddr::from(([127, 0, 0, 1], SERVER_PORT));
+    let addr = SocketAddr::from(([127, 0, 0, 1], ports.https));
     let server = axum_server::bind_rustls(addr, tls_config);
     server.serve(app.into_make_service()).await.unwrap();
 }
 
 #[cfg(test)]
 mod tests {
-    const SERVER_PORT: u16 = 3000;
+    use server::utils::Ports;
+
+    const PORTS: Ports = Ports {
+        http: 7878,
+        https: 3000,
+    };
 
     #[tokio::test]
     async fn http_client_works() -> Result<(), Box<dyn std::error::Error>> {
         let client = reqwest::Client::builder()
             .danger_accept_invalid_certs(true)
             .build()?;
-        let req = client.get(format!("https://localhost:{SERVER_PORT}"));
-        let resp = req.send().await?;
+        let resp = client
+            .get(format!("https://localhost:{}", PORTS.https))
+            .send()
+            .await?;
         println!("{:?}", resp);
-        println!("{:?}", resp.text().await?);
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn http_client_works_with_info() -> Result<(), Box<dyn std::error::Error>> {
-        // generate a pair of tls keys
-
+        assert_eq!(resp.text().await?, "Hello, Axum!");
+        let resp = client
+            .get(format!("http://localhost:{}", PORTS.http))
+            .send()
+            .await?;
+        println!("{:?}", resp);
+        assert_eq!(resp.text().await?, "Hello, Axum!");
         Ok(())
     }
 }
