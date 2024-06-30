@@ -1,10 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = [
-    "apps/desktop/src-tauri",
-    "packages/server",
-]
+members = ["apps/desktop/src-tauri", "packages/server"]
 
 [workspace.dependencies]
 axum = { version = "0.6.20" }
@@ -13,4 +10,5 @@ reqwest = { version = "0.12", features = ["json"] }
 serde = { version = "1.0.203", features = ["derive"] }
 serde_json = "1"
 tonic = "0.11"
+tonic-reflection = "0.11.0"
 hyper = "0.14"

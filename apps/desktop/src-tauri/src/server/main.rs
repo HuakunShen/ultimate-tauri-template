@@ -5,15 +5,11 @@ use super::{
     utils::shutdown_signal,
 };
 use axum::routing::get;
-use hyper::server::conn::AddrIncoming;
 use server::grpc::greeter::hello_world::greeter_server::GreeterServer;
 use server::grpc::greeter::MyGreeter;
 use std::{net::SocketAddr, sync::Arc};
 use tauri::AppHandle;
-use tokio::{
-    net::TcpListener,
-    sync::{broadcast, Mutex},
-};
+use tokio::sync::{broadcast, Mutex};
 use tonic::transport::Server as TonicServer;
 
 async fn start_server(
@@ -23,8 +19,14 @@ async fn start_server(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let greeter = MyGreeter::default();
     let server_state = ServerState { app_handle };
-    // let server_info = ServerInfo {};
+    let reflection_service = tonic_reflection::server::Builder::configure()
+        .register_encoded_file_descriptor_set(
+            server::grpc::greeter::hello_world::FILE_DESCRIPTOR_SET,
+        )
+        .build()
+        .unwrap();
     let grpc_router = TonicServer::builder()
+        .add_service(reflection_service)
         .add_service(GreeterServer::new(greeter))
         .into_router();
     let rest_router = axum::Router::new()
@@ -45,19 +47,17 @@ pub struct Server {
     port: u16,
     server_handle: Arc<Mutex<Option<tauri::async_runtime::JoinHandle<()>>>>,
     shutdown_tx: broadcast::Sender<()>,
-    shutdown_rx: broadcast::Receiver<()>,
 }
 
 impl Server {
     pub fn new(app_handle: AppHandle, port: u16) -> Self {
-        let (shutdown_tx, shutdown_rx) = broadcast::channel(1);
+        let (shutdown_tx, _shutdown_rx) = broadcast::channel(1);
 
         Self {
             app_handle,
             port,
             server_handle: Arc::new(Mutex::new(None)),
             shutdown_tx,
-            shutdown_rx,
         }
     }
 

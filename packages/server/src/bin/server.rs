@@ -67,19 +67,23 @@ async fn udp_listener(udp_socket: UdpSocket) -> std::io::Result<()> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let server_addr: SocketAddr = "[::]:1566".parse()?;
-    // let server_addr = SocketAddr::from(([0, 0, 0, 0], SERVER_PORT));
+    let server_addr: SocketAddr = format!("[::]:{SERVER_PORT}").parse()?;
     let udp_socket = UdpSocket::bind(&server_addr).await?;
-    let tcp_listener = TcpListener::bind(&server_addr).await?;
     tokio::task::spawn(udp_listener(udp_socket));
     let greeter = MyGreeter::default();
-    let incoming = AddrIncoming::from_listener(tcp_listener)?;
+    let reflection_service = tonic_reflection::server::Builder::configure()
+        .register_encoded_file_descriptor_set(
+            server::grpc::greeter::hello_world::FILE_DESCRIPTOR_SET,
+        )
+        .build()
+        .unwrap();
     let grpc_router = TonicServer::builder()
         .add_service(GreeterServer::new(greeter))
+        .add_service(reflection_service)
         .into_router()
         .route("/", get(web_root))
         .route("/info", get(get_server_info));
-    axum::Server::builder(incoming)
+    axum::Server::bind(&server_addr)
         .serve(grpc_router.into_make_service())
         .await?;
     Ok(())

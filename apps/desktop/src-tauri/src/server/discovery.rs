@@ -70,19 +70,17 @@ pub struct DiscoveryServer {
     port: u16,
     server_handle: Arc<Mutex<Option<tauri::async_runtime::JoinHandle<()>>>>,
     shutdown_tx: broadcast::Sender<()>,
-    shutdown_rx: broadcast::Receiver<()>,
 }
 
 impl DiscoveryServer {
     pub fn new(app_handle: AppHandle, port: u16) -> Self {
-        let (shutdown_tx, shutdown_rx) = broadcast::channel(1);
+        let (shutdown_tx, _shutdown_rx) = broadcast::channel(1);
 
         Self {
             app_handle,
             port,
             server_handle: Arc::new(Mutex::new(None)),
             shutdown_tx,
-            shutdown_rx,
         }
     }
 

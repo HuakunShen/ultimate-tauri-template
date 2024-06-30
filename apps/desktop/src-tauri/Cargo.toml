@@ -21,4 +21,5 @@ axum-extra = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }
 tonic = { workspace = true }
+tonic-reflection = { workspace = true }
 hyper = { workspace = true }
