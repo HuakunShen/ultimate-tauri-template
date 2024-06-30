@@ -1,5 +1,7 @@
 pub mod grpc;
 pub mod utils;
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -8,11 +10,12 @@ pub enum Protocol {
     Http,
     Https,
 }
-impl ToString for Protocol {
-    fn to_string(&self) -> String {
+
+impl Display for Protocol {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Protocol::Http => "http".to_string(),
-            Protocol::Https => "https".to_string(),
+            Protocol::Http => write!(f, "http"),
+            Protocol::Https => write!(f, "https"),
         }
     }
 }
