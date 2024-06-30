@@ -6,6 +6,13 @@ This template is a monorepo that contains a Tauri App with features I usually ne
 
 ## Features
 
+### Platform
+
+#### Windows
+
+- [x] Increased stack size
+    Windows by default has a small stack size of 1MB. As more plugins and rust code are added, you may encounter stack overflow. This is fixed by increasing the stack size to 8MB (default of Mac and Linux). Settings are in `.cargo/config.toml`.
+
 ### Server
 
 I sometimes need to implement apps that need to communicate with other apps in the same local network, or from localhost. This must be done with a server.

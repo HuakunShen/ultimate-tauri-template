@@ -1,5 +1,15 @@
 pub mod server {
     use crate::server::{discovery::DiscoveryServer, main::Server};
+    use server::Protocol;
+
+    #[tauri::command]
+    pub async fn set_server_protocol(
+        server: tauri::State<'_, Server>,
+        protocol: Protocol,
+    ) -> Result<(), String> {
+        server.set_server_protocol(protocol).await;
+        Ok(())
+    }
 
     #[tauri::command]
     pub async fn start_server(server: tauri::State<'_, Server>) -> Result<(), String> {

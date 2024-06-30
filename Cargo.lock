@@ -695,6 +695,7 @@ version = "0.0.0"
 dependencies = [
  "axum",
  "axum-extra",
+ "axum-server",
  "hyper 0.14.29",
  "reqwest",
  "serde",

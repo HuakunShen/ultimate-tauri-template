@@ -8,15 +8,30 @@ import {
   restartServiceDiscoveryServer,
   stopServiceDiscoveryServer,
   serviceDiscoveryServerIsRunning,
+  setServerProtocol,
 } from "@/lib/commands/server";
 
 const serverUp = ref(false);
 const discoveryServerUp = ref(false);
+const protocol = ref<"http" | "https">("http");
+
+watch(protocol, (_protocol) => {
+  setServerProtocol(_protocol)
+    .then(() => {
+      return restartServer();
+    })
+    .then(() => {
+      ElNotification.success({
+        title: `Protocol set to ${_protocol}`,
+      });
+    });
+});
+
 onMounted(() => {
   setInterval(() => {
     serverIsRunning().then((up) => (serverUp.value = up));
     serviceDiscoveryServerIsRunning().then(
-      (up) => (discoveryServerUp.value = up)
+      (up) => (discoveryServerUp.value = up),
     );
   }, 2000);
 });
@@ -40,7 +55,6 @@ onMounted(() => {
         @click="startServiceDiscoveryServer"
         >Start Discovery Server</el-button
       >
-      <!-- <button class="border">Start Discovery Server</button> -->
       <el-button
         class="!ml-0"
         type="success"
@@ -56,5 +70,14 @@ onMounted(() => {
     </div>
     <p><strong>Server Up: </strong>{{ serverUp }}</p>
     <p><strong>Service Discovery Server Up: </strong>{{ discoveryServerUp }}</p>
+    <el-select
+      v-model="protocol"
+      placeholder="Protocol"
+      size="large"
+      style="width: 240px"
+    >
+      <el-option label="http" value="http" />
+      <el-option label="https" value="https" />
+    </el-select>
   </div>
 </template>

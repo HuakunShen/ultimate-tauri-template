@@ -2,20 +2,22 @@
 use super::{
     model::ServerState,
     rest::{get_server_info, web_root},
-    utils::shutdown_signal,
 };
 use axum::routing::get;
+use axum_server::tls_rustls::RustlsConfig;
 use server::grpc::greeter::hello_world::greeter_server::GreeterServer;
 use server::grpc::greeter::MyGreeter;
-use std::{net::SocketAddr, sync::Arc};
+use server::Protocol;
+use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 use tauri::AppHandle;
-use tokio::sync::{broadcast, Mutex};
+use tokio::sync::Mutex;
 use tonic::transport::Server as TonicServer;
 
 async fn start_server(
-    app_handle: AppHandle,
+    protocol: Protocol,
     server_addr: SocketAddr,
-    shutdown_rx: broadcast::Receiver<()>,
+    app_handle: AppHandle,
+    shtdown_handle: axum_server::Handle,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let greeter = MyGreeter::default();
     let server_state = ServerState { app_handle };
@@ -34,46 +36,66 @@ async fn start_server(
         .route("/info", get(get_server_info))
         .with_state(server_state);
     let combined_router = axum::Router::new().merge(grpc_router).merge(rest_router);
-
-    axum::Server::bind(&server_addr)
-        .serve(combined_router.into_make_service())
-        .with_graceful_shutdown(shutdown_signal(shutdown_rx))
-        .await?;
-    Ok(())
+    let svr = match protocol {
+        Protocol::Http => {
+            axum_server::bind(server_addr)
+                .handle(shtdown_handle)
+                .serve(combined_router.into_make_service())
+                .await
+        }
+        Protocol::Https => {
+            let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+            let tls_config = RustlsConfig::from_pem_file(
+                manifest_dir.join("self_signed_certs").join("server.crt"),
+                manifest_dir.join("self_signed_certs").join("server.key"),
+            )
+            .await?;
+            axum_server::bind_rustls(server_addr, tls_config)
+                .handle(shtdown_handle)
+                .serve(combined_router.into_make_service())
+                .await
+        }
+    };
+    Ok(svr?)
 }
 
 pub struct Server {
-    app_handle: AppHandle,
-    port: u16,
-    server_handle: Arc<Mutex<Option<tauri::async_runtime::JoinHandle<()>>>>,
-    shutdown_tx: broadcast::Sender<()>,
+    pub app_handle: AppHandle,
+    pub shtdown_handle: Arc<Mutex<Option<axum_server::Handle>>>,
+    pub protocol: Mutex<Protocol>,
+    pub port: u16,
+    pub server_handle: Arc<Mutex<Option<tauri::async_runtime::JoinHandle<()>>>>,
 }
 
 impl Server {
-    pub fn new(app_handle: AppHandle, port: u16) -> Self {
-        let (shutdown_tx, _shutdown_rx) = broadcast::channel(1);
-
+    pub fn new(app_handle: AppHandle, port: u16, protocol: Protocol) -> Self {
         Self {
             app_handle,
+            protocol: Mutex::new(protocol),
             port,
             server_handle: Arc::new(Mutex::new(None)),
-            shutdown_tx,
+            shtdown_handle: Arc::new(Mutex::new(None)),
         }
+    }
+
+    pub async fn set_server_protocol(&self, protocol: Protocol) {
+        let mut p = self.protocol.lock().await;
+        *p = protocol;
     }
 
     pub async fn start(&self) -> Result<(), Box<dyn std::error::Error>> {
         let mut server_handle = self.server_handle.lock().await;
+        let mut shtdown_handle = self.shtdown_handle.lock().await;
         if server_handle.is_some() {
             return Err("Server is already running".into());
         }
-
-        // let server_addr: SocketAddr = format!("[::]:{}", self.port).parse()?;
         let server_addr: SocketAddr = format!("[::]:{}", self.port).parse()?;
-
-        let shutdown_rx = self.shutdown_tx.subscribe();
         let app_handle = self.app_handle.clone();
+        let _shutdown_handle = axum_server::Handle::new();
+        *shtdown_handle = Some(_shutdown_handle.clone());
+        let protocol = self.protocol.lock().await.clone();
         *server_handle = Some(tauri::async_runtime::spawn(async move {
-            match start_server(app_handle, server_addr, shutdown_rx).await {
+            match start_server(protocol, server_addr, app_handle, _shutdown_handle).await {
                 Ok(_) => {}
                 Err(e) => {
                     eprintln!("Server start error: {}", e);
@@ -85,13 +107,22 @@ impl Server {
 
     pub async fn stop(&self) -> Result<(), Box<dyn std::error::Error>> {
         let mut server_handle = self.server_handle.lock().await;
-        self.shutdown_tx.send(())?;
+        let mut shtdown_handle = self.shtdown_handle.lock().await;
+        match shtdown_handle.as_ref() {
+            Some(handle) => {
+                handle.shutdown();
+            }
+            None => {
+                return Err("Server is not running".into());
+            }
+        }
+        shtdown_handle.take();
+        // self.shutdown_tx.send(())?;
         server_handle.take();
         Ok(())
     }
 
     pub async fn is_running(&self) -> bool {
-        let server_handle = self.server_handle.lock().await;
-        server_handle.is_some()
+        self.server_handle.lock().await.is_some() && self.shtdown_handle.lock().await.is_some()
     }
 }

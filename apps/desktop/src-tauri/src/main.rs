@@ -18,10 +18,15 @@ fn main() {
             commands::server::stop_service_discovery_server,
             commands::server::restart_service_discovery_server,
             commands::server::service_discovery_server_is_running,
+            commands::server::set_server_protocol,
         ])
         .setup(|app| {
             // setup::setup(app);
-            app.manage(server::Server::new(app.handle().clone(), 1566));
+            app.manage(server::Server::new(
+                app.handle().clone(),
+                1566,
+                ::server::Protocol::Http, // default to http
+            ));
             app.manage(server::DiscoveryServer::new(app.handle().clone(), 1566));
             Ok(())
         })
