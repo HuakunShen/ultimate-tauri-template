@@ -4,7 +4,6 @@ use std::{net::SocketAddr, path::PathBuf};
 
 const SERVER_PORT: u16 = 3000;
 
-
 #[tokio::main]
 async fn main() {
     // Configure certificate and private key used by HTTPS
