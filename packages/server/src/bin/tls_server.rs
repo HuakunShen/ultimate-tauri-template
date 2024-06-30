@@ -11,10 +11,10 @@ async fn main() {
     let tls_config = RustlsConfig::from_pem_file(
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("self_signed_certs")
-            .join("cert.pem"),
+            .join("server.crt"),
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("self_signed_certs")
-            .join("key.pem"),
+            .join("server.key"),
     )
     .await
     .unwrap();
@@ -45,7 +45,7 @@ mod tests {
     #[tokio::test]
     async fn http_client_works_with_info() -> Result<(), Box<dyn std::error::Error>> {
         // generate a pair of tls keys
-        
+
         Ok(())
     }
 }
