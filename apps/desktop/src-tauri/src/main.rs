@@ -2,12 +2,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use tauri::Manager;
+pub mod utils;
 pub mod commands;
 pub mod server;
-pub mod setup;
-pub mod utils;
-
-use tauri_plugin_log::fern::colors::ColoredLevelConfig;
+pub mod constants;
+pub use tauri_plugin_log::fern::colors::ColoredLevelConfig;
 
 fn main() {
     tauri::Builder::default()
@@ -40,6 +39,7 @@ fn main() {
             commands::server::restart_service_discovery_server,
             commands::server::service_discovery_server_is_running,
             commands::server::set_server_protocol,
+            commands::discovery::discovery_peers,
         ])
         .setup(|app| {
             // setup::setup(app);

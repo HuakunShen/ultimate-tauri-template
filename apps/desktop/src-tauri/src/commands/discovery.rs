@@ -7,8 +7,8 @@ pub async fn discovery_peers(// server: tauri::State<'_, Server>,
     let discovered_peers = discover(
         1566,
         &ServiceDiscoverPayload {
-            service_name: "desktop".to_string(),
-            service_port: 1566,
+            name: "desktop".to_string(),
+            port: 1566,
         },
         4,
     )

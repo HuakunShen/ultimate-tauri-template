@@ -821,6 +821,7 @@ dependencies = [
  "axum-server",
  "chrono",
  "hyper 0.14.29",
+ "lazy_static",
  "log",
  "reqwest",
  "serde",

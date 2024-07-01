@@ -10,6 +10,7 @@ import {
   serviceDiscoveryServerIsRunning,
   setServerProtocol,
 } from "@/lib/commands/server";
+import { discoverPeers } from "@/lib/commands/discovery";
 
 const serverUp = ref(false);
 const discoveryServerUp = ref(false);
@@ -28,6 +29,8 @@ watch(protocol, (_protocol) => {
 });
 
 onMounted(() => {
+  startServer();
+  startServiceDiscoveryServer();
   setInterval(() => {
     serverIsRunning().then((up) => (serverUp.value = up));
     serviceDiscoveryServerIsRunning().then(
@@ -70,14 +73,29 @@ onMounted(() => {
     </div>
     <p><strong>Server Up: </strong>{{ serverUp }}</p>
     <p><strong>Service Discovery Server Up: </strong>{{ discoveryServerUp }}</p>
-    <el-select
-      v-model="protocol"
-      placeholder="Protocol"
-      size="large"
-      style="width: 240px"
+    <div>
+      <el-select
+        v-model="protocol"
+        placeholder="Protocol"
+        size="large"
+        style="width: 240px"
+      >
+        <el-option label="http" value="http" />
+        <el-option label="https" value="https" />
+      </el-select>
+    </div>
+    <el-button
+      @click="
+        () =>
+          discoverPeers()
+            .then((peers) => {
+              console.debug(peers);
+            })
+            .catch((err) => {
+              console.error(err);
+            })
+      "
+      >Discover Peers</el-button
     >
-      <el-option label="http" value="http" />
-      <el-option label="https" value="https" />
-    </el-select>
   </div>
 </template>

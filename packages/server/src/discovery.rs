@@ -6,50 +6,53 @@ use tokio::{
     time::{self, Duration},
 };
 
-const SERVICE_NAME: &str = "ultimate-tauri";
-
 #[derive(Serialize, Deserialize)]
 pub struct ServiceDiscoverPayload {
-    pub service_name: String,
-    pub service_port: u16,
+    pub name: String,
+    pub port: u16,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Debug, Clone)]
 pub struct ServiceDiscoverInfo {
     pub addr: SocketAddr,
-    pub service_port: u16,
+    pub port: u16,
 }
 
 async fn collect_responses(
     socket: &UdpSocket,
     response_timeout_secs: u8,
+    service_name: &str,
 ) -> Result<HashSet<ServiceDiscoverInfo>, Box<dyn std::error::Error>> {
     let mut buf = vec![0; 1024];
     let mut discovered_services = HashSet::new();
 
     let end_time = time::Instant::now() + Duration::from_secs(response_timeout_secs as u64);
     while time::Instant::now() < end_time {
-        match socket.recv_from(&mut buf).await {
-            Ok((len, addr)) => {
+        let remaining_time = end_time - time::Instant::now();
+        match time::timeout(remaining_time, socket.recv_from(&mut buf)).await {
+            Ok(Ok((len, addr))) => {
                 let received_msg = std::str::from_utf8(&buf[..len]);
                 match received_msg {
                     Ok(msg) => {
-                        let payload: ServiceDiscoverPayload = serde_json::from_str(msg)?;
-                        if payload.service_name != SERVICE_NAME {
-                            continue;
+                        match serde_json::from_str::<ServiceDiscoverPayload>(msg) {
+                            Ok(payload) => {
+                                if payload.name == service_name {
+                                    discovered_services.insert(ServiceDiscoverInfo {
+                                        port: payload.port,
+                                        addr,
+                                    });
+                                }
+                            }
+                            Err(e) => eprintln!("Failed to parse payload: {:?}", e),
                         }
-                        discovered_services.insert(ServiceDiscoverInfo {
-                            service_port: payload.service_port,
-                            addr,
-                        });
                     }
                     Err(e) => eprintln!("Failed to parse message: {:?}", e),
-                };
+                }
             }
-            Err(e) => eprintln!("Failed to receive message: {:?}", e),
+            Ok(Err(e)) => eprintln!("Failed to receive message: {:?}", e),
+            Err(_) => break, // Timeout expired, break the loop
         }
     }
-
     Ok(discovered_services)
 }
 
@@ -64,19 +67,21 @@ pub async fn discover(
     let payload_str = serde_json::to_string(&payload)?;
     let message = payload_str.as_bytes();
     socket.send_to(message, &broadcast_addr).await?;
-    let discovered_services = collect_responses(&socket, duration_secs).await?;
+    let discovered_services =
+        collect_responses(&socket, duration_secs, &payload.name).await?;
     Ok(discovered_services)
 }
 
 pub async fn discover_udp_listener(
     udp_socket: UdpSocket,
     mut stop_rx: broadcast::Receiver<()>,
+    service_name: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut buf = vec![0; 1024];
+    println!("Starting UDP listener");
     loop {
         tokio::select! {
             _ = stop_rx.recv() => {
-                println!("Stopping UDP listener");
                 break;
             }
             result = udp_socket.recv_from(&mut buf) => {
@@ -91,18 +96,17 @@ pub async fn discover_udp_listener(
                         match received_msg {
                             Ok(msg) => {
                                 let payload: ServiceDiscoverPayload = serde_json::from_str(msg)?;
-                                if payload.service_name != SERVICE_NAME {
+                                if payload.name != service_name {
                                     continue;
                                 } else {
-                                    let local_addr = udp_socket.local_addr()?;
-                                    let response = ServiceDiscoverInfo{
-                                        addr: local_addr,
-                                        service_port: payload.service_port,
+                                    let response = ServiceDiscoverPayload{
+                                        name: service_name.to_string(),
+                                        port: payload.port,
                                     };
                                     let response = serde_json::to_string(&response)?;
                                     match udp_socket.send_to(response.as_bytes(), &src).await {
                                         Ok(sent_len) => {
-                                            println!("Sent response of {} bytes to {}", sent_len, src);
+                                            println!("Sent response of {} bytes ({}) to {}", sent_len, response, src);
                                         }
                                         Err(e) => {
                                             eprintln!("Failed to send response: {}", e);
@@ -121,6 +125,5 @@ pub async fn discover_udp_listener(
             }
         }
     }
-    println!("UDP listener stopped");
     Ok(())
 }
