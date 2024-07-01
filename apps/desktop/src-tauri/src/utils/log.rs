@@ -1,8 +1,6 @@
-use log::{info, warn};
+use log::info;
 use tauri::{AppHandle, Manager};
-use tauri_plugin_log::{
-    fern::colors::ColoredLevelConfig, LogLevel, Target as LogTarget, TargetKind,
-};
+use tauri_plugin_log::{Target as LogTarget, TargetKind};
 
 pub fn get_log_targets() -> Vec<LogTarget> {
     #[cfg(debug_assertions)]

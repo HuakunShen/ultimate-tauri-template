@@ -2,10 +2,10 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use tauri::Manager;
-pub mod utils;
 pub mod commands;
-pub mod server;
 pub mod constants;
+pub mod server;
+pub mod utils;
 pub use tauri_plugin_log::fern::colors::ColoredLevelConfig;
 
 fn main() {
@@ -49,6 +49,11 @@ fn main() {
                 ::server::Protocol::Http, // default to http
             ));
             app.manage(server::DiscoveryServer::new(app.handle().clone(), 1566));
+            #[cfg(debug_assertions)] // only inclupde this code on debug builds
+            {
+                let window = app.get_webview_window("main").unwrap();
+                window.open_devtools();
+            }
             Ok(())
         })
         .run(tauri::generate_context!())

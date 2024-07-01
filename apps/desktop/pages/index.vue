@@ -10,11 +10,12 @@ import {
   serviceDiscoveryServerIsRunning,
   setServerProtocol,
 } from "@/lib/commands/server";
-import { discoverPeers } from "@/lib/commands/discovery";
+import { discoverPeers, ServiceDiscoverInfo } from "@/lib/commands/discovery";
 
 const serverUp = ref(false);
 const discoveryServerUp = ref(false);
 const protocol = ref<"http" | "https">("http");
+const peers = ref<ServiceDiscoverInfo[]>([]);
 
 watch(protocol, (_protocol) => {
   setServerProtocol(_protocol)
@@ -36,8 +37,22 @@ onMounted(() => {
     serviceDiscoveryServerIsRunning().then(
       (up) => (discoveryServerUp.value = up),
     );
+    runDiscoverPeers();
   }, 2000);
 });
+
+function runDiscoverPeers() {
+  discoverPeers()
+    .then((_peers) => {
+      peers.value = _peers;
+    })
+    .catch((err) => {
+      ElNotification.error({
+        title: `Failed to discover`,
+        message: err,
+      });
+    });
+}
 </script>
 <template>
   <div class="p-4">
@@ -84,18 +99,11 @@ onMounted(() => {
         <el-option label="https" value="https" />
       </el-select>
     </div>
-    <el-button
-      @click="
-        () =>
-          discoverPeers()
-            .then((peers) => {
-              console.debug(peers);
-            })
-            .catch((err) => {
-              console.error(err);
-            })
-      "
-      >Discover Peers</el-button
-    >
+    <el-button @click="runDiscoverPeers">Discover Peers</el-button>
+    <ul class="list-decimal ml-8">
+      <li v-for="(peer, idx) in peers" :key="idx">
+        {{ peer.ip }}:{{ peer.port }}
+      </li>
+    </ul>
   </div>
 </template>
