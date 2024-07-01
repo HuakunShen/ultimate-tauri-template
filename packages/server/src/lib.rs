@@ -1,5 +1,6 @@
 pub mod grpc;
 pub mod utils;
+pub mod discovery;
 use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};

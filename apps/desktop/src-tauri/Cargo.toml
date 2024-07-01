@@ -24,3 +24,6 @@ serde = { workspace = true }
 tonic = { workspace = true }
 tonic-reflection = { workspace = true }
 hyper = { workspace = true }
+log = "0.4"
+tauri-plugin-log = { version = "2.0.0-beta", features = ["colored"] }
+chrono = "0.4.38"

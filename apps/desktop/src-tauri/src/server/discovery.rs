@@ -1,53 +1,54 @@
 use std::{net::SocketAddr, sync::Arc};
+use server::discovery::discover_udp_listener;
 use tauri::AppHandle;
 use tokio::{
     net::UdpSocket,
     sync::{broadcast, Mutex},
 };
 
-pub async fn udp_listener(
-    udp_socket: UdpSocket,
-    mut stop_rx: broadcast::Receiver<()>,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let mut buf = vec![0; 1024];
-    loop {
-        tokio::select! {
-            _ = stop_rx.recv() => {
-                println!("Stopping UDP listener");
-                break;
-            }
-            result = udp_socket.recv_from(&mut buf) => {
-                match result {
-                    Ok((len, src)) => {
-                        println!(
-                            "Received UDP message: {} from {}",
-                            String::from_utf8_lossy(&buf[..len]),
-                            src
-                        );
-                        let local_addr = udp_socket.local_addr()?;
+// pub async fn udp_listener(
+//     udp_socket: UdpSocket,
+//     mut stop_rx: broadcast::Receiver<()>,
+// ) -> Result<(), Box<dyn std::error::Error>> {
+//     let mut buf = vec![0; 1024];
+//     loop {
+//         tokio::select! {
+//             _ = stop_rx.recv() => {
+//                 println!("Stopping UDP listener");
+//                 break;
+//             }
+//             result = udp_socket.recv_from(&mut buf) => {
+//                 match result {
+//                     Ok((len, src)) => {
+//                         println!(
+//                             "Received UDP message: {} from {}",
+//                             String::from_utf8_lossy(&buf[..len]),
+//                             src
+//                         );
+//                         let local_addr = udp_socket.local_addr()?;
 
-                        let response = format!("Hello, from UDP Server on {}:{}",local_addr.ip(),local_addr.port()
-                        );
-                        match udp_socket.send_to(response.as_bytes(), &src).await {
-                            Ok(sent_len) => {
-                                println!("Sent response of {} bytes to {}", sent_len, src);
-                            }
-                            Err(e) => {
-                                eprintln!("Failed to send response: {}", e);
-                            }
-                        }
-                    }
-                    Err(e) => {
-                        eprintln!("UDP listener error: {}", e);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    println!("UDP listener stopped");
-    Ok(())
-}
+//                         let response = format!("Hello, from UDP Server on {}:{}",local_addr.ip(),local_addr.port()
+//                         );
+//                         match udp_socket.send_to(response.as_bytes(), &src).await {
+//                             Ok(sent_len) => {
+//                                 println!("Sent response of {} bytes to {}", sent_len, src);
+//                             }
+//                             Err(e) => {
+//                                 eprintln!("Failed to send response: {}", e);
+//                             }
+//                         }
+//                     }
+//                     Err(e) => {
+//                         eprintln!("UDP listener error: {}", e);
+//                         break;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//     println!("UDP listener stopped");
+//     Ok(())
+// }
 
 pub async fn start_service_discovery_server(
     _app_handle: AppHandle,
@@ -55,7 +56,7 @@ pub async fn start_service_discovery_server(
     stop_rx: broadcast::Receiver<()>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let udp_socket = UdpSocket::bind(&server_addr).await?;
-    udp_listener(udp_socket, stop_rx).await?;
+    discover_udp_listener(udp_socket, stop_rx).await?;
     Ok(())
 }
 

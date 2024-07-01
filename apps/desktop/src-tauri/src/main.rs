@@ -5,10 +5,31 @@ use tauri::Manager;
 pub mod commands;
 pub mod server;
 pub mod setup;
+pub mod utils;
+
+use tauri_plugin_log::fern::colors::ColoredLevelConfig;
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .targets(utils::log::get_log_targets())
+                .level(utils::log::get_log_level())
+                .with_colors(ColoredLevelConfig::default())
+                .max_file_size(10_000_000) // max 10MB
+                .format(|out, message, record| {
+                    out.finish(format_args!(
+                        "{}[{}] {}",
+                        chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
+                        // record.target(),
+                        record.level(),
+                        message
+                    ))
+                })
+                .build(),
+        )
         .invoke_handler(tauri::generate_handler![
             commands::server::start_server,
             commands::server::stop_server,

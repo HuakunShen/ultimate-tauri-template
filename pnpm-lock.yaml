@@ -38,6 +38,9 @@ importers:
       '@tauri-apps/api':
         specifier: '>=2.0.0-beta.0'
         version: 2.0.0-beta.13
+      '@tauri-apps/plugin-log':
+        specifier: 2.0.0-beta.6
+        version: 2.0.0-beta.6
       '@vueuse/core':
         specifier: ^10.11.0
         version: 10.11.0(vue@3.4.31)
@@ -53,6 +56,9 @@ importers:
       vue:
         specifier: latest
         version: 3.4.31(typescript@5.4.5)
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
     devDependencies:
       '@tauri-apps/cli':
         specifier: '>=2.0.0-beta.0'
@@ -3128,6 +3134,12 @@ packages:
       '@tauri-apps/cli-win32-ia32-msvc': 2.0.0-beta.20
       '@tauri-apps/cli-win32-x64-msvc': 2.0.0-beta.20
     dev: true
+
+  /@tauri-apps/plugin-log@2.0.0-beta.6:
+    resolution: {integrity: sha512-AFJj3eC9IKR9cDs3mgNeew1HeMgg1UWC2OlWc2A9q4qRtuJNdJRD0A6yu4ZvfO1AqQBFJ15J/dmeq40lu5dz8w==}
+    dependencies:
+      '@tauri-apps/api': 2.0.0-beta.13
+    dev: false
 
   /@tootallnate/quickjs-emscripten@0.23.0:
     resolution: {integrity: sha512-C5Mc6rdnsaJDjO3UpGW/CQTHtCKaYlScZTly4JIu97Jxo/odCiH0ITnDXSJPTOrEKk/ycSZ0AOgTmkDtkOsvIA==}
@@ -11891,4 +11903,8 @@ packages:
       archiver-utils: 5.0.2
       compress-commons: 6.0.2
       readable-stream: 4.5.2
+    dev: false
+
+  /zod@3.23.8:
+    resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
     dev: false
