@@ -37,7 +37,7 @@ pub fn get_log_level() -> log::LevelFilter {
 /// Remove log files that are older than 3 days
 pub fn clear_old_log_files(app_handle: &AppHandle) -> Result<(), tauri::Error> {
     let log_dir = app_handle.path().app_log_dir()?;
-    let files = std::fs::read_dir(&log_dir)?;
+    let files = std::fs::read_dir(log_dir)?;
     for file in files {
         let file = file?;
         let path = file.path();

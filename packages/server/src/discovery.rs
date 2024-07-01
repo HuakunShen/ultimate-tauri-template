@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{collections::HashSet, net::SocketAddr};
+use std::collections::HashSet;
 use tokio::{
     net::UdpSocket,
     sync::broadcast,

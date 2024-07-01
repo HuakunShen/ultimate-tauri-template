@@ -1,2 +1,2 @@
-pub mod server;
 pub mod discovery;
+pub mod server;
