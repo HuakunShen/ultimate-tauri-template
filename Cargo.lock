@@ -823,10 +823,10 @@ dependencies = [
  "hyper 0.14.29",
  "lazy_static",
  "log",
+ "network",
  "reqwest",
  "serde",
  "serde_json",
- "server",
  "tauri",
  "tauri-build",
  "tauri-plugin-log",
@@ -2302,6 +2302,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "network"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "axum-extra",
+ "axum-server",
+ "hyper 0.14.29",
+ "prost",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "tonic-reflection",
+ "tower",
+ "tower-http",
+]
+
+[[package]]
 name = "new_debug_unreachable"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3691,26 +3711,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
-]
-
-[[package]]
-name = "server"
-version = "0.1.0"
-dependencies = [
- "axum",
- "axum-extra",
- "axum-server",
- "hyper 0.14.29",
- "prost",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
- "tonic",
- "tonic-build",
- "tonic-reflection",
- "tower",
- "tower-http",
 ]
 
 [[package]]

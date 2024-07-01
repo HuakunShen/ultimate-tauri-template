@@ -1,5 +1,5 @@
 /// This example demonstrate how to listen and discover services within local network
-use server::discovery::{discover, discover_udp_listener, ServiceDiscoverPayload};
+use network::discovery::{discover, discover_udp_listener, ServiceDiscoverPayload};
 use std::net::SocketAddr;
 use tokio::{net::UdpSocket, sync::broadcast};
 

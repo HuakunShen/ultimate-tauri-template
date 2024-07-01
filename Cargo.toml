@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["apps/desktop/src-tauri", "packages/server"]
+members = ["apps/desktop/src-tauri", "packages/network"]
 
 [workspace.dependencies]
 axum = { version = "0.6.20" }

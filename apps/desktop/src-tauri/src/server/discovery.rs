@@ -1,4 +1,4 @@
-use server::discovery::discover_udp_listener;
+use network::discovery::discover_udp_listener;
 use std::{net::SocketAddr, sync::Arc};
 use tauri::AppHandle;
 use tokio::{

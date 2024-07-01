@@ -1,6 +1,6 @@
 use axum::{routing::get, Router};
 use axum_server::tls_rustls::RustlsConfig;
-use server::utils::{redirect_http_to_https, Ports};
+use network::utils::{redirect_http_to_https, Ports};
 use std::{net::SocketAddr, path::PathBuf};
 
 #[tokio::main]
@@ -32,7 +32,7 @@ async fn main() {
 
 #[cfg(test)]
 mod tests {
-    use server::utils::Ports;
+    use network::utils::Ports;
 
     const PORTS: Ports = Ports {
         http: 7878,

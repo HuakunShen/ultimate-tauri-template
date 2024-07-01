@@ -1,7 +1,6 @@
 use axum::routing::get;
+use network::grpc::greeter::{hello_world::greeter_server::GreeterServer, MyGreeter};
 use serde::Serialize;
-use server::grpc::greeter::hello_world::greeter_server::GreeterServer;
-use server::grpc::greeter::MyGreeter;
 use std::net::SocketAddr;
 use tokio::net::UdpSocket;
 use tonic::transport::Server as TonicServer;
@@ -69,7 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let greeter = MyGreeter::default();
     let reflection_service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(
-            server::grpc::greeter::hello_world::FILE_DESCRIPTOR_SET,
+            network::grpc::greeter::hello_world::FILE_DESCRIPTOR_SET,
         )
         .build()
         .unwrap();
@@ -97,8 +96,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// To run this test, start server first by running `cargo run --bin server`, then run `cargo test --bin server`
 #[cfg(test)]
 mod tests {
-    use server::grpc::greeter::hello_world::greeter_client::GreeterClient;
-    use server::grpc::greeter::hello_world::HelloRequest;
+    use network::grpc::greeter::hello_world::{greeter_client::GreeterClient, HelloRequest};
     use std::collections::HashMap;
     use std::net::SocketAddr;
     use tokio::net::UdpSocket;

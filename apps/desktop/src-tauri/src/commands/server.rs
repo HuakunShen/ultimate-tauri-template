@@ -1,5 +1,5 @@
 use crate::server::{discovery::DiscoveryServer, main::Server};
-use server::Protocol;
+use network::Protocol;
 
 #[tauri::command]
 pub async fn set_server_protocol(

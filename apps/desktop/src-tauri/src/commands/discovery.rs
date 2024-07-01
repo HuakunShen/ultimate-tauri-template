@@ -1,5 +1,5 @@
 use crate::constants::SERVICE_NAME;
-use server::discovery::{discover, ServiceDiscoverInfo, ServiceDiscoverPayload};
+use network::discovery::{discover, ServiceDiscoverInfo, ServiceDiscoverPayload};
 use std::collections::HashSet;
 
 #[tauri::command]

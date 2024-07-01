@@ -15,7 +15,7 @@ tauri-build = { version = "2.0.0-beta", features = [] }
 [dependencies]
 tauri = { version = "2.0.0-beta", features = [] }
 tauri-plugin-shell = "2.0.0-beta"
-server = { path = "../../../packages/server" }
+network = { path = "../../../packages/network" }
 axum-server = { workspace = true }
 tokio = { workspace = true }
 serde_json = { workspace = true }

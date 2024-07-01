@@ -5,9 +5,9 @@ use super::{
 };
 use axum::routing::get;
 use axum_server::tls_rustls::RustlsConfig;
-use server::grpc::greeter::hello_world::greeter_server::GreeterServer;
-use server::grpc::greeter::MyGreeter;
-use server::Protocol;
+use network::grpc::greeter::hello_world::greeter_server::GreeterServer;
+use network::grpc::greeter::MyGreeter;
+use network::Protocol;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 use tauri::AppHandle;
 use tokio::sync::Mutex;
@@ -23,7 +23,7 @@ async fn start_server(
     let server_state = ServerState { app_handle };
     let reflection_service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(
-            server::grpc::greeter::hello_world::FILE_DESCRIPTOR_SET,
+            network::grpc::greeter::hello_world::FILE_DESCRIPTOR_SET,
         )
         .build()
         .unwrap();

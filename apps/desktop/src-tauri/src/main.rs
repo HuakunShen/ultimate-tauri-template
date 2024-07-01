@@ -46,7 +46,7 @@ fn main() {
             app.manage(server::Server::new(
                 app.handle().clone(),
                 1566,
-                ::server::Protocol::Http, // default to http
+                network::Protocol::Http, // default to http
             ));
             app.manage(server::DiscoveryServer::new(app.handle().clone(), 1566));
             #[cfg(debug_assertions)] // only inclupde this code on debug builds
