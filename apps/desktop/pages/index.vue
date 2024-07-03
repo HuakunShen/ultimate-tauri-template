@@ -6,12 +6,12 @@ import {
   serverIsRunning,
   setServerProtocol
 } from "@/lib/commands/server";
-import { getPeers, ServiceDiscoverInfo } from "@/lib/commands/discovery";
+import { getPeers, Peers, ServiceDiscoverInfo } from "@/lib/commands/discovery";
 
 const serverUp = ref(false);
 const discoveryServerUp = ref(false);
 const protocol = ref<"http" | "https">("http");
-const peers = ref<ServiceDiscoverInfo[]>([]);
+const peers = ref<Peers>({});
 
 watch(protocol, (_protocol) => {
   setServerProtocol(_protocol)
@@ -30,7 +30,6 @@ onMounted(() => {
   setInterval(() => {
     serverIsRunning().then((up) => (serverUp.value = up));
     getPeers().then((p) => {
-      console.log(p);
       peers.value = p;
     });
   }, 2000);
@@ -64,8 +63,11 @@ onMounted(() => {
       </el-select>
     </div>
     <ul class="list-decimal ml-8">
-      <li v-for="(peer, idx) in peers" :key="idx">
-        {{ peer.addresses }}:{{ peer.port }}
+      <li v-for="([hostname, peer], idx) in Object.entries(peers)" :key="idx">
+        {{ hostname }}
+        <pre
+          >{{ JSON.stringify(peer, null, 2) }}
+        </pre>
       </li>
     </ul>
   </div>

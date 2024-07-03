@@ -10,7 +10,9 @@ export const ServiceDiscoverInfo = z.object({
   subType: z.string().nullable()
 });
 export type ServiceDiscoverInfo = z.infer<typeof ServiceDiscoverInfo>;
+export const Peers = z.record(ServiceDiscoverInfo);
+export type Peers = z.infer<typeof Peers>;
 
 export function getPeers() {
-  return invoke<ServiceDiscoverInfo[]>("get_peers");
+  return invoke<Peers>("get_peers");
 }

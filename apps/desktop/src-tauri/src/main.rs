@@ -50,7 +50,6 @@ fn main() {
             app.manage(Peers::default());
             let mdns = setup::peer_discovery::setup_mdns(my_port)?;
             setup::peer_discovery::handle_mdns_service_evt(app.handle(), mdns.browse()?);
-            std::thread::sleep(std::time::Duration::from_secs(1));
             #[cfg(debug_assertions)] // only inclupde this code on debug builds
             {
                 let window = app.get_webview_window("main").unwrap();
