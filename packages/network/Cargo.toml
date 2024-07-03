@@ -17,6 +17,7 @@ tokio = { workspace = true }
 hyper = { workspace = true }
 tonic-reflection = { workspace = true }
 axum-server = { workspace = true }
+mdns-sd = { workspace = true }
 
 
 [build-dependencies]

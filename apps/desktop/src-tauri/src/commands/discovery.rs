@@ -1,21 +1,37 @@
-use crate::constants::SERVICE_NAME;
-use network::discovery::{discover, ServiceDiscoverInfo, ServiceDiscoverPayload};
-use std::collections::HashSet;
+use std::{collections::HashSet, sync::Mutex};
+use tauri_plugin_network::network::mdns::ServiceInfoMod;
+
+#[derive(Default, Debug)]
+pub struct Peers {
+    pub peers: Mutex<HashSet<ServiceInfoMod>>,
+}
+
+impl Peers {
+    pub fn add_peer(&self, peer: ServiceInfoMod) {
+        println!("Added peer: {:?}", peer.clone());
+        let mut peers = self.peers.lock().unwrap();
+        peers.insert(peer);
+    }
+
+    pub fn remove_peer(&self, service_type: String, fullname: String) {
+        let mut peers = self.peers.lock().unwrap();
+        // filter out the peer
+        peers.retain(|peer| peer.service_type != service_type || peer.fullname != fullname);
+    }
+
+    pub fn clear(&self) {
+        let mut peers = self.peers.lock().unwrap();
+        peers.clear();
+    }
+
+    pub fn set_peers(&self, peers: HashSet<ServiceInfoMod>) {
+        self.clear();
+        self.peers.lock().unwrap().extend(peers);
+    }
+}
 
 #[tauri::command]
-pub async fn discovery_peers(
-    duration_secs: Option<u8>,
-) -> Result<HashSet<ServiceDiscoverInfo>, String> {
-    let duration_secs = duration_secs.unwrap_or(1);
-    let discovered_peers = discover(
-        1566,
-        &ServiceDiscoverPayload {
-            name: SERVICE_NAME.to_string(),
-            port: 1566,
-        },
-        duration_secs,
-    )
-    .await
-    .map_err(|err| err.to_string())?;
-    Ok(discovered_peers)
+pub async fn get_peers(state: tauri::State<'_, Peers>) -> Result<HashSet<ServiceInfoMod>, String> {
+    let _peers = state.peers.lock().unwrap();
+    Ok(_peers.to_owned())
 }

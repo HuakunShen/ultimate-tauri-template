@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import {
   startServer,
-  startServiceDiscoveryServer,
   stopServer,
   restartServer,
   serverIsRunning,
-  restartServiceDiscoveryServer,
-  stopServiceDiscoveryServer,
-  serviceDiscoveryServerIsRunning,
-  setServerProtocol,
+  setServerProtocol
 } from "@/lib/commands/server";
-import { discoverPeers, ServiceDiscoverInfo } from "@/lib/commands/discovery";
+import { getPeers, ServiceDiscoverInfo } from "@/lib/commands/discovery";
 
 const serverUp = ref(false);
 const discoveryServerUp = ref(false);
@@ -24,35 +20,21 @@ watch(protocol, (_protocol) => {
     })
     .then(() => {
       ElNotification.success({
-        title: `Protocol set to ${_protocol}`,
+        title: `Protocol set to ${_protocol}`
       });
     });
 });
 
 onMounted(() => {
   startServer();
-  startServiceDiscoveryServer();
   setInterval(() => {
     serverIsRunning().then((up) => (serverUp.value = up));
-    serviceDiscoveryServerIsRunning().then(
-      (up) => (discoveryServerUp.value = up),
-    );
-    runDiscoverPeers();
+    getPeers().then((p) => {
+      console.log(p);
+      peers.value = p;
+    });
   }, 2000);
 });
-
-function runDiscoverPeers() {
-  discoverPeers()
-    .then((_peers) => {
-      peers.value = _peers;
-    })
-    .catch((err) => {
-      ElNotification.error({
-        title: `Failed to discover`,
-        message: err,
-      });
-    });
-}
 </script>
 <template>
   <div class="p-4">
@@ -66,24 +48,6 @@ function runDiscoverPeers() {
       >
       <el-button class="!ml-0" type="primary" @click="restartServer"
         >Restart Server</el-button
-      >
-      <el-button
-        class="!ml-0"
-        type="success"
-        @click="startServiceDiscoveryServer"
-        >Start Discovery Server</el-button
-      >
-      <el-button
-        class="!ml-0"
-        type="success"
-        @click="stopServiceDiscoveryServer"
-        >Stop Discovery Server</el-button
-      >
-      <el-button
-        class="!ml-0"
-        type="success"
-        @click="restartServiceDiscoveryServer"
-        >Restart Discovery Server</el-button
       >
     </div>
     <p><strong>Server Up: </strong>{{ serverUp }}</p>
@@ -99,10 +63,9 @@ function runDiscoverPeers() {
         <el-option label="https" value="https" />
       </el-select>
     </div>
-    <el-button @click="runDiscoverPeers">Discover Peers</el-button>
     <ul class="list-decimal ml-8">
       <li v-for="(peer, idx) in peers" :key="idx">
-        {{ peer.ip }}:{{ peer.port }}
+        {{ peer.addresses }}:{{ peer.port }}
       </li>
     </ul>
   </div>
